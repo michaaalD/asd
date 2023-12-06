@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <time.h>
+
+#define MAX_N 100
+#define MAX_X 100
+#define MAX_Y 100
+
+int X, Y, N, S;
+int territories[MAX_X][MAX_Y];
+int territories_left;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
+void* syn_thread(void* arg) {
+    int id = *(int*)arg;
+    int count = 0;
+    for (int i = 0; i < S; i++) {
+        int x = rand() % X;
+        int y = rand() % Y;
+        pthread_mutex_lock(&mutex);
+        if (territories[x][y] == 0) {
+            territories[x][y] = id + 1;
+            count++;
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    pthread_mutex_lock(&mutex);
+    territories_left -= count;
+    printf("Syn %d zdobył %d terytoriów.\n", id + 1, count);
+    if (territories_left == 0) {
+        pthread_cond_signal(&cond);
+    }
+    pthread_mutex_unlock(&mutex);
+    return NULL;
+}
+
+void* rejent_thread(void* arg) {
+    pthread_mutex_lock(&mutex);
+    while (territories_left > 0) {
+        pthread_cond_wait(&cond, &mutex);
+        int counts[MAX_N] = {0};
+        for (int i = 0; i < X; i++) {
+            for (int j = 0; j < Y; j++) {
+                if (territories[i][j] > 0) {
+                    counts[territories[i][j] - 1]++;
+                }
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            printf("Syn %d zdobył %d terytoriów.\n", i + 1, counts[i]);
+        }
+        printf("Pozostało %d wolnych terytoriów.\n", territories_left);
+    }
+    pthread_mutex_unlock(&mutex);
+    return NULL;
+}
+
+int main(int argc, char* argv[]) {
+    srand(time(NULL));
+    scanf("%d %d %d %d", &X, &Y, &N, &S);
+    territories_left = X * Y;
+    pthread_t syn_threads[MAX_N], rejent_thread;
+    int syn_ids[MAX_N];
+    for (int i = 0; i < N; i++) {
+        syn_ids[i] = i;
+        pthread_create(&syn_threads[i], NULL, syn_thread, &syn_ids[i]);
+    }
+    pthread_create(&rejent_thread, NULL, rejent_thread, NULL);
+    for (int i = 0; i < N; i++) {
+        pthread_join(syn_threads[i], NULL);
+    }
+    pthread_join(rejent_thread, NULL);
+    return 0;
+}
