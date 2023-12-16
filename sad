@@ -1,34 +1,42 @@
- FILE *file;
-    char user_names[MAX_ROWS][50]; // Tablica na user_name
-    char passwords[MAX_ROWS][50]; // Tablica na haslo
-    int i = 0;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-    file = fopen("dane.txt", "r"); // Otwieramy plik do odczytu
+#define MAX_ROWS 100
+#define MAX_COLS 50
+
+struct Data {
+    char id[MAX_COLS];
+    char password[MAX_COLS];
+    char mail[MAX_COLS];
+    char user_name[MAX_COLS];
+};
+
+int main() {
+    FILE *file;
+    struct Data data[MAX_ROWS];
+    int row_count = 0;
+
+    // Otwórz plik
+    file = fopen("dane.txt", "r");
     if (file == NULL) {
-        printf("Nie można otworzyć pliku.\n");
+        printf("Błąd otwarcia pliku.\n");
         return 1;
     }
 
-    while (!feof(file) && i < MAX_ROWS) {
-        int id;
-        char user_name[50];
-        char password[50];
-        char mail[50];
-
-        // Wczytujemy dane z pliku
-        fscanf(file, "%d %s %s %s", &id, password, mail, user_name);
-
-        // Kopiujemy wartości do odpowiednich tablic
-        strcpy(user_names[i], user_name);
-        strcpy(passwords[i], password);
-
-        printf("User_name[%d]: %s\n", i, user_names[i]);
-        printf("Haslo[%d]: %s\n", i, passwords[i]);
-
-        i++;
+    // Wczytaj dane
+    while (fscanf(file, "%s %s %s %s", data[row_count].id, data[row_count].password, data[row_count].mail, data[row_count].user_name) != EOF) {
+        row_count++;
     }
 
-    fclose(file); // Zamykamy plik
+    // Wyświetl wczytane dane
+    printf("Wczytane dane:\n");
+    for (int i = 0; i < row_count; i++) {
+        printf("ID: %s, Hasło: %s\n", data[i].id, data[i].password);
+    }
+
+    // Zamknij plik
+    fclose(file);
 
     return 0;
 }
