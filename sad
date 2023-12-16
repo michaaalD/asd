@@ -1,11 +1,7 @@
-#include <stdio.h>
-
-int main() {
-    FILE *file;
-    char haslo[100]; // Tablica na co trzeci element
-    char user[100]; // Tablica na co czwarty element
+ FILE *file;
+    char user_names[MAX_ROWS][50]; // Tablica na user_name
+    char passwords[MAX_ROWS][50]; // Tablica na haslo
     int i = 0;
-    int count = 0; // Licznik elementów
 
     file = fopen("dane.txt", "r"); // Otwieramy plik do odczytu
     if (file == NULL) {
@@ -13,30 +9,26 @@ int main() {
         return 1;
     }
 
-    while (!feof(file) && i < 100) {
-        char value[100];
-        fscanf(file, "%s", value); // Wczytujemy dane z pliku
-        if (count % 3 == 0) {
-            strcpy(haslo[i], value); // Zapisujemy co trzeci element do tablicy haslo
-        } else if (count % 4 == 0) {
-            strcpy(user[i], value); // Zapisujemy co czwarty element do tablicy user
-            i++;
-        }
-        count++;
+    while (!feof(file) && i < MAX_ROWS) {
+        int id;
+        char user_name[50];
+        char password[50];
+        char mail[50];
+
+        // Wczytujemy dane z pliku
+        fscanf(file, "%d %s %s %s", &id, password, mail, user_name);
+
+        // Kopiujemy wartości do odpowiednich tablic
+        strcpy(user_names[i], user_name);
+        strcpy(passwords[i], password);
+
+        printf("User_name[%d]: %s\n", i, user_names[i]);
+        printf("Haslo[%d]: %s\n", i, passwords[i]);
+
+        i++;
     }
 
     fclose(file); // Zamykamy plik
-
-    // Wyświetlamy zawartość tablic haslo i user
-    printf("Elementy tablicy haslo:\n");
-    for (int j = 0; j < i; j++) {
-        printf("%s\n", haslo[j]);
-    }
-
-    printf("\nElementy tablicy user:\n");
-    for (int j = 0; j < i; j++) {
-        printf("%s\n", user[j]);
-    }
 
     return 0;
 }
